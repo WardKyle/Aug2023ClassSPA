@@ -1,3 +1,5 @@
+This is the Class SPA Project for the August 2023 Cohort
+
 Use this repository to start class for the lesson 6.1
 
 
