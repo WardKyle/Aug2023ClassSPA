@@ -13,15 +13,62 @@ function render(state = store.Home) {
     ${Main(state)}
     ${Footer()}
   `;
-  afterRender();
+  afterRender(state);
   router.updatePageLinks();
 }
 
-function afterRender() {
+function afterRender(state) {
   // add menu toggle to bars icon in nav bar
   document.querySelector(".fa-bars").addEventListener("click", () => {
     document.querySelector("nav > ul").classList.toggle("hidden--mobile");
   });
+
+  if (state.view === "Order") {
+    // Add an event handler for the submit button on the form
+    document.querySelector("form").addEventListener("submit", event => {
+      event.preventDefault();
+
+      // Get the form element
+      const inputList = event.target.elements;
+      console.log("Input Element List", inputList);
+
+      // Create an empty array to hold the toppings
+      const toppings = [];
+
+      // Iterate over the toppings array
+
+      for (let input of inputList.toppings) {
+        // If the value of the checked attribute is true then add the value to the toppings array
+        if (input.checked) {
+          toppings.push(input.value);
+        }
+      }
+
+      // Create a request body object to send to the API
+      const requestData = {
+        customer: inputList.customer.value,
+        crust: inputList.crust.value,
+        cheese: inputList.cheese.value,
+        sauce: inputList.sauce.value,
+        toppings: toppings
+      };
+      // Log the request body to the console
+      console.log("request Body", requestData);
+
+      axios
+        // Make a POST request to the API to create a new pizza
+        .post(`${process.env.PIZZA_PLACE_API_URL}/pizzas`, requestData)
+        .then(response => {
+          //  Then push the new pizza onto the Pizza state pizzas attribute, so it can be displayed in the pizza list
+          store.Pizza.pizzas.push(response.data);
+          router.navigate("/Pizza");
+        })
+        // If there is an error log it to the console
+        .catch(error => {
+          console.log("It puked", error);
+        });
+    });
+  }
 }
 
 router.hooks({
@@ -60,7 +107,7 @@ router.hooks({
       case "Pizza":
         // New Axios get request utilizing already made environment variable
         axios
-          .get(process.env.PIZZA_PLACE_API_URL)
+          .get(`${process.env.PIZZA_PLACE_API_URL}/pizzas`)
           .then(response => {
             // We need to store the response to the state, in the next step but in the meantime let's see what it looks like so that we know what to store from the response.
             console.log("response", response);
